@@ -1,0 +1,45 @@
+---
+appId: com.upscaler.app
+productName: upscaler
+copyright: Copyright © 2021 akirco
+files:
+  - dist
+directories:
+  output: build
+asar: true
+extraResources:
+  - from: "resources/bin"
+    to: bin
+  - from: resources/models
+    to: models
+win:
+  icon: "./public/electron.ico"
+  publish:
+    - provider: github
+      repo: vite-electron-vue-starter
+      owner: akirco
+  target:
+    - nsis
+    - portable
+    - 7z
+nsis:
+  oneClick: false
+  allowElevation: true
+  allowToChangeInstallationDirectory: true
+  createDesktopShortcut: true
+  createStartMenuShortcut: true
+  shortcutName: electron
+  artifactName: "${productName}-${version}-setup.${ext}"
+linux:
+  icon: "./public/icons/256x256.png"
+  category: "Development"
+  maintainer: akirco
+  target:
+    - tar.gz
+    - AppImage
+    - deb
+mac:
+  target: dmg
+  icon: "./public/electron.icns"
+  category: public.app-category.developer-tools
+electronVersion: 20.1.1
