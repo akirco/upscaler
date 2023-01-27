@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { reactive, ref, onMounted } from "vue";
+import { reactive, ref, onMounted, h } from "vue";
 import { useLoading } from 'vue-loading-overlay'
 import type { PluginApi, ActiveLoader } from "vue-loading-overlay"
 import MainContent from "@/layout/main-content.vue";
@@ -27,12 +27,14 @@ const inputFile = ref(empty)
 const outputFile = ref(empty);
 const isSelected = ref(false)
 const container = ref()
+const slotText = ref("")
+
 let loading: PluginApi = null;
 let loader: ActiveLoader = null;
 onMounted(() => {
   loading = useLoading({
     backgroundColor: '#242933',
-    opacity: 0.5,
+    opacity: 0.7,
     color: '#61afef',
     loader: 'spinner',
     container: container.value
@@ -54,16 +56,22 @@ const startEnhanced = async () => {
     "input": inputFile.value.substring(10),
     "output": getOutputPath(inputFile.value.substring(10)),
   }
-
+  console.log(opts);
   ipcRenderer.send(channels.startEhanced, opts);
   loader = loading.show()
+}
+
+const changeScale = () => {
+  console.log("val:", scale.value);
 }
 
 ipcRenderer.on(commands.upscale, (_, data) => {
   if (data.length > 0 && data.length < 10) {
     if (data === "0.00%") {
     }
+    slotText.value = data
     ipcRenderer.on(commands.done, () => {
+      slotText.value = ""
       loader.hide()
       outputFile.value = "images:///" + getOutputPath(inputFile.value.substring(10));
     })
@@ -86,20 +94,21 @@ const reset = () => {
     <div class="grid grid-cols-3 gap-2 h-full w-full p-3">
       <div
         class="w-full h-full col-span-2 bg-base-100  rounded-lg shadow-xl p-3 border-gray-700 border-2 border-dashed border-dark-50"
-        ref="container">
+        :ref="container">
         <ImageViewer width="614" height="564" class="m-auto">
           <template #left>
-            <img :src="inputFile" class="images" />
+            <img :src="inputFile" class="images rounded-lg shadow-lg" />
           </template>
           <template #right>
-            <img :src="outputFile" class="images" />
+            <img :src="outputFile" class="images rounded-lg shadow-lg" />
           </template>
         </ImageViewer>
+        <p class="fixed left-[48%] bottom-[48%] text-pink-600 font-semibold">{{ slotText.split("%")[0] }}</p>
       </div>
       <div class="h-full w-full flex justify-between flex-col">
         <div class="grid grid-rows-3 gap-5">
           <div>
-            <h3>upscler</h3>
+            <div class="badge badge-primary badge-outline">upscaler</div>
             <div class="divider mt-0"></div>
             <div class="grid grid-rows-2 gap-3">
               <div class="flex gap-3">
@@ -115,9 +124,9 @@ const reset = () => {
             </div>
           </div>
           <div>
-            <h3>scale</h3>
+            <div class="badge badge-primary badge-outline">scale</div>
             <div class="divider mt-0"></div>
-            <input disabled="true" type="range" min="0" max="4" v-model="scale" class="range" step="1" />
+            <input @change="changeScale" type="range" min="1" max="4" v-model="scale" class="range" step="1" />
             <div class="w-full flex justify-between text-xs px-2">
               <span>1</span>
               <span>2</span>
@@ -126,9 +135,7 @@ const reset = () => {
             </div>
           </div>
           <div>
-            <h3>
-              models
-            </h3>
+            <div class="badge badge-primary badge-outline">models</div>
             <div class="divider mt-0"></div>
             <select class="select select-bordered w-full max-w-xs" v-model="model">
               <option v-for="item in models">{{ item }}</option>

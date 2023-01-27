@@ -40,6 +40,7 @@
     "electron": "20.1.1",
     "electron-builder": "^23.6.0",
     "electron-devtools-vendor": "^1.2.0",
+    "electron-is-dev": "^2.0.0",
     "electron-rebuild": "^3.2.9",
     "electron-root-path": "^1.1.0",
     "is-electron": "^2.2.1",

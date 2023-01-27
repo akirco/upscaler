@@ -16,6 +16,7 @@ specifiers:
   electron: 20.1.1
   electron-builder: ^23.6.0
   electron-devtools-vendor: ^1.2.0
+  electron-is-dev: ^2.0.0
   electron-rebuild: ^3.2.9
   electron-root-path: ^1.1.0
   is-electron: ^2.2.1
@@ -53,6 +54,7 @@ devDependencies:
   electron: 20.1.1
   electron-builder: 23.6.0
   electron-devtools-vendor: 1.2.0
+  electron-is-dev: 2.0.0
   electron-rebuild: 3.2.9
   electron-root-path: 1.1.0
   is-electron: 2.2.1
@@ -1657,6 +1659,10 @@ packages:
 
   /electron-devtools-vendor/1.2.0:
     resolution: {integrity: sha512-w+P7TaX7gD8RFvIeUsJZZx2+hRNjcq8GQmSI/I+OgC+71qbfaBwKZ6S8BwV1bQjW9Eu1dXx0aRWAlAZ3b9nZbg==}
+    dev: true
+
+  /electron-is-dev/2.0.0:
+    resolution: {integrity: sha512-3X99K852Yoqu9AcW50qz3ibYBWY79/pBhlMCab8ToEWS48R0T9tyxRiQhwylE7zQdXrMnx2JKqUJyMPmt5FBqA==}
     dev: true
 
   /electron-is-packaged/1.0.2:
