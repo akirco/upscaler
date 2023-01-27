@@ -16,7 +16,7 @@ win:
   icon: "./public/electron.ico"
   publish:
     - provider: github
-      repo: vite-electron-vue-starter
+      repo: upscaler
       owner: akirco
   target:
     - nsis
