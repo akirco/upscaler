@@ -42,4 +42,4 @@ mac:
   target: dmg
   icon: "./public/electron.icns"
   category: public.app-category.developer-tools
-electronVersion: 20.1.1
+electronVersion: 22.1.0
