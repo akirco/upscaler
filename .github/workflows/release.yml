@@ -8,24 +8,18 @@ on:
 jobs:
   release:
     runs-on: windows-latest
-
-    strategy:
-      matrix:
-        os: [windows-latest]
     steps:
       - name: Check out Git repository
         uses: actions/checkout@v3
-        with:
-          submodules: true
 
-      - name: Install Node.js, NPM and Yarn
+      - name: setup node env
         uses: actions/setup-node@v3.5.0
         with:
           node-version: 16
 
-      - name: Build/release Electron app
+      - name: Install Modules and Publish build
         env:
-          github_token: ${{ secrets.github_token }}
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           yarn install
           yarn run release
