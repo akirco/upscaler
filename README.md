@@ -1,21 +1,15 @@
-# Vue 3 + Typescript + Vite + electron
+# super-resolution - upscaler
 
+## develop
 
-## Recommended IDE Setup
+```shell
+git clone https://github.com/akirco/upscaler.git
 
-- [VSCode](https://code.visualstudio.com/)
+cd upscaler
 
-- [Volar](https://marketplace.visualstudio.com/items?itemName=johnsoncodehk.volar)
+pnpm i
 
-## preview
-
-- init
-
-![init](https://raw.githubusercontent.com/Casuor/ImgCDN/master/img/Snipaste_2022-05-07_19-50-52.png)
-
-- max
-
-![max](https://raw.githubusercontent.com/Casuor/ImgCDN/master/img/Snipaste_2022-05-07_19-51-04.png)
-
+pnpm dev
+```
 
 > enjoy it !
