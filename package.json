@@ -17,6 +17,7 @@
     "build:vue": "vue-tsc --noEmit && vite build",
     "build:tsc": "tsc -p tsconfig.electron.json",
     "build:all": "electron-builder",
+    "release": "yarn run build && electron-builder -w --publish always",
     "preview": "vite preview"
   },
   "dependencies": {
