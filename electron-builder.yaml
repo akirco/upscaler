@@ -28,7 +28,7 @@ nsis:
   allowToChangeInstallationDirectory: true
   createDesktopShortcut: true
   createStartMenuShortcut: true
-  shortcutName: electron
+  shortcutName: upscaler
   artifactName: "${productName}-${version}-setup.${ext}"
 linux:
   icon: "./public/icons/256x256.png"
