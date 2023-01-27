@@ -6,9 +6,6 @@
   "version": "1.0.0",
   "license": "ISC",
   "main": "dist/.electron/main/main.js",
-  "engines": {
-    "node": "16.14.2"
-  },
   "scripts": {
     "dev": "kill-port 3000 && concurrently -k \"vite\" \"wait-on tcp:3000 && npm-run-all watch\"",
     "watch": "tsc-watch --noClear -p tsconfig.electron.json --onSuccess \"npm-run-all start\"",
