@@ -71,7 +71,6 @@ const startEnhanced = async () => {
     "input": inputFile.value.substring(10),
     "output": getOutputPath(model.value, inputFile.value.substring(10)),
   }
-  console.log(opts);
 
   ipcRenderer.send(channels.startEhanced, opts);
   loader = loading.show()
