@@ -63,20 +63,34 @@ function upscaleHandler(mainWindow: BrowserWindow) {
   //* start enhance
   ipcMain.once(channels.startEhanced, async (event, args) => {
     const { upscaler, scale, model, input, output } = args;
-    const params = [
-      "-i",
-      input,
-      "-o",
-      output,
-      "-s",
-      scale,
-      "-m",
-      modelsPath,
-      "-n",
-      model,
-    ];
+    let params = null;
+    if (upscaler === "realesrgan-ncnn-vulkan") {
+      params = [
+        "-i",
+        input,
+        "-o",
+        output,
+        "-s",
+        scale,
+        "-m",
+        modelsPath,
+        "-n",
+        model,
+      ];
+    } else {
+      params = [
+        "-i",
+        input,
+        "-o",
+        output,
+        "-s",
+        scale,
+        "-x",
+        "-m",
+        modelsPath + "\\" + model,
+      ];
+    }
     const upscaleHero = await run(execsPath + "\\" + upscaler, params);
-
     upscaleHero.stderr.on("data", (data) => {
       data = data.toString();
       mainWindow.webContents.send(commands.upscale, data);

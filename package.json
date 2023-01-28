@@ -3,7 +3,7 @@
   "author": "aki",
   "description": "upscaler",
   "email": "earlfx@163.com",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "license": "ISC",
   "main": "dist/.electron/main/main.js",
   "scripts": {

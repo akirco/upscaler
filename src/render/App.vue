@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { reactive, ref, onMounted, h } from "vue";
+import { reactive, ref, onMounted, computed } from "vue";
 import { useLoading } from 'vue-loading-overlay'
 import type { PluginApi, ActiveLoader } from "vue-loading-overlay"
 import MainContent from "@/layout/main-content.vue";
@@ -19,10 +19,21 @@ const upscaler = reactive({
   realsr: "realsr-ncnn-vulkan"
 })
 const scale = ref(4);
-const models = ref(["realesrgan-x4plus-anime", "realesrgan-x4plus", "ultrasharp", "ultramix_balanced"])
-
 const picked = ref(upscaler.realesrgan)
-const model = ref("realesrgan-x4plus-anime");
+const models = computed(() => {
+  if (picked.value === upscaler.realesrgan) {
+    return ["realesrgan-x4plus-anime", "realesrgan-x4plus", "remacri", "4x-AnimeSharp-opt-fp16", "4x-AnimeSharp-opt-fp32", "ultrasharp", "ultramix_balanced"];
+  } else {
+    return ["models-DF2K", "models-DF2K_JPEG"];
+  }
+})
+const model = computed(() => {
+  if (picked.value === upscaler.realesrgan) {
+    return "realesrgan-x4plus-anime"
+  } else {
+    return "models-DF2K"
+  }
+});
 const disabled = ref(true)
 const inputFile = ref(empty)
 const outputFile = ref(empty);
@@ -36,7 +47,7 @@ let loader: ActiveLoader = null;
 onMounted(() => {
   loading = useLoading({
     backgroundColor: '#242933',
-    opacity: 0.7,
+    opacity: 0.5,
     color: '#61afef',
     loader: 'spinner',
     container: container.value
@@ -58,7 +69,6 @@ const startEnhanced = async () => {
     "input": inputFile.value.substring(10),
     "output": getOutputPath(inputFile.value.substring(10)),
   }
-  console.log(opts);
   ipcRenderer.send(channels.startEhanced, opts);
   loader = loading.show()
 }
@@ -108,7 +118,7 @@ const reset = () => {
             <img :src="outputFile" class="rounded-lg shadow-lg object-contain h-[100%] w-[96%]" />
           </template>
         </ImageViewer>
-        <p class="fixed left-[48%] bottom-[48%] text-pink-600 font-semibold">{{ slotText.split("%")[0] }}</p>
+        <p class="fixed left-[48%] bottom-[48%]  text-white font-semibold">{{ slotText.split("%")[0] }}</p>
       </div>
       <div class="h-full w-full flex justify-between flex-col">
         <div class="grid grid-rows-3 gap-5">
