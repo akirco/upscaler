@@ -5,6 +5,7 @@ import type { PluginApi, ActiveLoader } from "vue-loading-overlay"
 import MainContent from "@/layout/main-content.vue";
 import TopBar from "@/components/titleBar";
 import ImageViewer from "@/components/imageViewer/ImageViewer.vue";
+import TipBox from "./components/tipBox/TipBox.vue";
 import empty from '@/assets/icons/empty.svg'
 import { getOutputPath } from "@/utils/index"
 
@@ -28,6 +29,7 @@ const outputFile = ref(empty);
 const isSelected = ref(false)
 const container = ref()
 const slotText = ref("")
+const showInfo = ref(false)
 
 let loading: PluginApi = null;
 let loader: ActiveLoader = null;
@@ -61,10 +63,6 @@ const startEnhanced = async () => {
   loader = loading.show()
 }
 
-const changeScale = () => {
-  console.log("val:", scale.value);
-}
-
 ipcRenderer.on(commands.upscale, (_, data) => {
   if (data.length > 0 && data.length < 10) {
     if (data === "0.00%") {
@@ -76,6 +74,12 @@ ipcRenderer.on(commands.upscale, (_, data) => {
       outputFile.value = "images:///" + getOutputPath(inputFile.value.substring(10));
     })
   }
+})
+ipcRenderer.on(commands.failed, () => {
+  showInfo.value = true
+  setTimeout(() => {
+    showInfo.value = false
+  }, 3500)
 })
 
 
@@ -95,12 +99,13 @@ const reset = () => {
       <div
         class="w-full h-full col-span-2 bg-base-100  rounded-lg shadow-xl p-3 border-gray-700 border-2 border-dashed border-dark-50"
         :ref="container">
+        <TipBox content="文件处理出错，请稍后重试..." v-if="showInfo" />
         <ImageViewer width="614" height="564" class="m-auto">
           <template #left>
-            <img :src="inputFile" class="images rounded-lg shadow-lg" />
+            <img :src="inputFile" class="rounded-lg shadow-lg object-contain h-[100%] w-[96%]" />
           </template>
           <template #right>
-            <img :src="outputFile" class="images rounded-lg shadow-lg" />
+            <img :src="outputFile" class="rounded-lg shadow-lg object-contain h-[100%] w-[96%]" />
           </template>
         </ImageViewer>
         <p class="fixed left-[48%] bottom-[48%] text-pink-600 font-semibold">{{ slotText.split("%")[0] }}</p>
@@ -126,7 +131,7 @@ const reset = () => {
           <div>
             <div class="badge badge-primary badge-outline">scale</div>
             <div class="divider mt-0"></div>
-            <input @change="changeScale" type="range" min="1" max="4" v-model="scale" class="range" step="1" />
+            <input type="range" min="1" max="4" v-model="scale" class="range" step="1" />
             <div class="w-full flex justify-between text-xs px-2">
               <span>1</span>
               <span>2</span>
@@ -166,11 +171,5 @@ const reset = () => {
 <style scoped>
 * {
   color: #a2a9b6;
-}
-
-.images {
-  object-fit: cover;
-  width: 100%;
-  height: 100%;
 }
 </style>

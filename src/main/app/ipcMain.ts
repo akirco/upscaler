@@ -55,7 +55,6 @@ function upscaleHandler(mainWindow: BrowserWindow) {
       defaultPath: os.homedir(),
     });
     if (canceled) {
-      console.log("operate cancelled");
       return "cancelled";
     } else {
       return filePaths[0];
@@ -82,12 +81,12 @@ function upscaleHandler(mainWindow: BrowserWindow) {
       data = data.toString();
       mainWindow.webContents.send(commands.upscale, data);
       if (data.includes("invalid gpu") || data.includes("failed")) {
+        mainWindow.webContents.send(commands.failed);
       }
       if (data.includes("has alpha channel")) {
       }
     });
     upscaleHero.stderr.on("close", () => {
-      console.log("done");
       mainWindow.webContents.send(commands.done);
     });
   });

@@ -2,6 +2,7 @@
 import { onMounted, ref } from "vue";
 import maxIcon from "@/assets/icons/max.svg";
 import restoreIcon from "@/assets/icons/restore.svg";
+import setting from "@/assets/icons/setting.svg"
 
 const Icon = ref(maxIcon);
 const showFrame = window.showFrame;
@@ -36,20 +37,22 @@ function winMinSize() {
   ipcRenderer.send("windowMinSize", true);
 }
 
-function toggleSize() {
-  ipcRenderer.send("toggleSize", true);
-  ipcRenderer.on("winState", (event, args) => {
-    // console.log("渲染进程收到的消息是：", args);
-    if (args === "maximize") {
-      Icon.value = restoreIcon;
-    } else if (args === "restore") {
-      Icon.value = maxIcon;
-    }
-  });
-}
+// function toggleSize() {
+//   ipcRenderer.send("toggleSize", true);
+//   ipcRenderer.on("winState", (event, args) => {
+//     // console.log("渲染进程收到的消息是：", args);
+//     if (args === "maximize") {
+//       Icon.value = restoreIcon;
+//     } else if (args === "restore") {
+//       Icon.value = maxIcon;
+//     }
+//   });
+// }
 
 function winClosed() {
   ipcRenderer.send("windowClosed", true);
+}
+function toSetting() {
 }
 </script>
 
@@ -65,16 +68,15 @@ function winClosed() {
           {{ title }}
         </span>
       </div>
-      <div id="window-controls" class="grid top-0 right-0 h-full select-none w-[100px]" draggable="false">
+      <div id="window-controls" class="grid top-0 right-0 h-full select-none w-[150px]" draggable="false">
+        <div class="flex justify-center items-center h-full w-full select-none btn btn-ghost normal-case min-h-0"
+          @click="toSetting">
+          <img class="icon" :srcset="setting" draggable="false" />
+        </div>
         <div class="flex justify-center items-center h-full w-full select-none hover:bg-gray-600 active:bg-zinc-500"
           @click="winMinSize">
           <img class="icon" srcset="../../assets/icons/min.svg 2.5x" draggable="false" />
         </div>
-        <!-- <div class="flex justify-center items-center h-full w-full select-none hover:bg-gray-600 active:bg-zinc-500"
-          @click="toggleSize">
-          <img class="icon" :srcset="Icon + ' ' + '2.5x'" draggable="false" />
-        </div> -->
-
         <div class="flex justify-center items-center h-full w-full select-none hover:bg-red-500 active:bg-red-200"
           @click="winClosed">
           <img class="icon" srcset="../../assets/icons/closed.svg 1.75x" draggable="false" />
