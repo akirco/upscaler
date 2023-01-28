@@ -79,7 +79,9 @@ const startEnhanced = async () => {
 ipcRenderer.on(commands.upscale, (_, data) => {
   if (data.length > 0 && data.length < 10) {
     if (data === "0.00%") {
+      slotText.value = "即将处理..."
     }
+
     slotText.value = data
     ipcRenderer.on(commands.done, () => {
       slotText.value = ""
@@ -112,7 +114,7 @@ const reset = () => {
       <div
         class="w-full h-full col-span-2 bg-base-100  rounded-lg shadow-xl p-3 border-gray-700 border-2 border-dashed border-dark-50"
         :ref="container">
-        <TipBox content="文件处理出错，请稍后重试..." v-if="showInfo" />
+        <TipBox content="文件处理失败，请稍后重试..." v-if="showInfo" />
         <ImageViewer width="614" height="564" class="m-auto">
           <template #left>
             <img :src="inputFile" class="rounded-lg shadow-lg object-contain h-[100%] w-[96%]" />

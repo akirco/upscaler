@@ -61,7 +61,7 @@ function upscaleHandler(mainWindow: BrowserWindow) {
     }
   });
   //* start enhance
-  ipcMain.once(channels.startEhanced, async (event, args) => {
+  ipcMain.on(channels.startEhanced, async (event, args) => {
     const { upscaler, scale, model, input, output } = args;
     let params = null;
     if (upscaler === "realesrgan-ncnn-vulkan") {
@@ -93,7 +93,10 @@ function upscaleHandler(mainWindow: BrowserWindow) {
     const upscaleHero = await run(execsPath + "\\" + upscaler, params);
     upscaleHero.stderr.on("data", (data) => {
       data = data.toString();
+      console.log(data);
+
       mainWindow.webContents.send(commands.upscale, data);
+
       if (data.includes("invalid gpu") || data.includes("failed")) {
         mainWindow.webContents.send(commands.failed);
       }
