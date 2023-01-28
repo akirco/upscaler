@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { reactive, ref, onMounted, computed } from "vue";
+import { reactive, ref, onMounted, computed, watch } from "vue";
 import { useLoading } from 'vue-loading-overlay'
 import type { PluginApi, ActiveLoader } from "vue-loading-overlay"
 import MainContent from "@/layout/main-content.vue";
@@ -27,13 +27,15 @@ const models = computed(() => {
     return ["models-DF2K", "models-DF2K_JPEG"];
   }
 })
-const model = computed(() => {
-  if (picked.value === upscaler.realesrgan) {
-    return "realesrgan-x4plus-anime"
+const selected = ref("");
+watch(picked, (value, oldVal) => {
+  if (value === upscaler.realesrgan) {
+    selected.value = "realesrgan-x4plus"
   } else {
-    return "models-DF2K"
+    selected.value = "models-DF2K"
   }
-});
+}, { immediate: true })
+const model = ref(selected)
 const disabled = ref(true)
 const inputFile = ref(empty)
 const outputFile = ref(empty);
@@ -67,8 +69,10 @@ const startEnhanced = async () => {
     "scale": scale.value,
     "model": model.value,
     "input": inputFile.value.substring(10),
-    "output": getOutputPath(inputFile.value.substring(10)),
+    "output": getOutputPath(model.value, inputFile.value.substring(10)),
   }
+  console.log(opts);
+
   ipcRenderer.send(channels.startEhanced, opts);
   loader = loading.show()
 }
@@ -81,7 +85,7 @@ ipcRenderer.on(commands.upscale, (_, data) => {
     ipcRenderer.on(commands.done, () => {
       slotText.value = ""
       loader.hide()
-      outputFile.value = "images:///" + getOutputPath(inputFile.value.substring(10));
+      outputFile.value = "images:///" + getOutputPath(model.value, inputFile.value.substring(10));
     })
   }
 })
