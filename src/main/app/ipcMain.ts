@@ -93,7 +93,6 @@ function upscaleHandler(mainWindow: BrowserWindow) {
     const upscaleHero = await run(execsPath + "\\" + upscaler, params);
     upscaleHero.stderr.on("data", (data) => {
       data = data.toString();
-      console.log(data);
 
       mainWindow.webContents.send(commands.upscale, data);
 
