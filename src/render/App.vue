@@ -96,7 +96,7 @@ ipcRenderer.on(commands.failed, () => {
   setTimeout(() => {
     showInfo.value = false
   }, 3500)
-  ipcRenderer.send(commands.reload)
+  // ipcRenderer.send(commands.reload)
 })
 
 
@@ -105,6 +105,10 @@ const reset = () => {
   outputFile.value = empty
   isSelected.value = false
   disabled.value = true
+}
+
+const openExternalGithub = () => {
+  ipcRenderer.send(commands.openExternalGithub, "https://github.com/akirco/upscaler")
 }
 
 </script>
@@ -140,7 +144,7 @@ const reset = () => {
               <button :class="[
                 active ? 'bg-selfBgColor text-white' : 'text-gray-400',
                 'group flex w-full items-center rounded-md px-2 py-2 text-sm',
-              ]">
+              ]" @click="openExternalGithub">
                 <div :active="active" class="mr-2 h-5 w-5 text-violet-400" aria-hidden="true"></div>
                 Github Repo
               </button>
@@ -153,7 +157,7 @@ const reset = () => {
                 'group flex w-full items-center rounded-md px-2 py-2 text-sm',
               ]">
                 <div :active="active" class="mr-2 h-5 w-5 text-violet-400" aria-hidden="true"></div>
-                Blog
+                Check update
               </button>
               </MenuItem>
               <MenuItem v-slot="{ active }">

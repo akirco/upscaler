@@ -3,4 +3,5 @@ export const commands = {
   failed: "failed",
   done: "upscaleDone",
   reload: "reload",
+  openExternalGithub: "openExternalGithub",
 };

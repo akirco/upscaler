@@ -1,4 +1,4 @@
-import { ipcMain, nativeTheme, dialog } from "electron";
+import { ipcMain, nativeTheme, dialog, shell } from "electron";
 import type { BrowserWindow } from "electron";
 import os from "node:os";
 import { channels } from "../../libs/channels";
@@ -113,6 +113,9 @@ function upscaleHandler(mainWindow: BrowserWindow) {
   // *  重新加载
   ipcMain.on(commands.reload, () => {
     mainWindow.reload();
+  });
+  ipcMain.on(commands.openExternalGithub, (_, data) => {
+    shell.openExternal(data);
   });
 
   // * 选择目录
