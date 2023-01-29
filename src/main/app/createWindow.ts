@@ -8,14 +8,12 @@ const NODE_ENV = process.env.NODE_ENV;
 
 class InitWindow {
   public mainWindow: BrowserWindow = new BrowserWindow(windowConfig);
-  constructor() {
+  async createWindow() {
     windowAction(this.mainWindow);
     upscaleHandler(this.mainWindow);
     registerShortcut(this.mainWindow);
     toggleDark();
     fsmkdir();
-  }
-  async createWindow() {
     this.mainWindow.webContents.on("dom-ready", () => {
       this.mainWindow.removeMenu();
       Menu.setApplicationMenu(Menu.buildFromTemplate([]));
