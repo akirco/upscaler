@@ -1,5 +1,7 @@
 # super-resolution - upscaler
 
+> currently is single task processing mode.
+
 ## install
 
 ```
@@ -15,6 +17,10 @@ scoop install upscaler
 1. select image
 2. choose upscaler & scale & model
 3. start program
+
+## upcoming
+
+- multi-task mode
 
 ## development
 
