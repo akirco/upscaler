@@ -26,6 +26,8 @@
   },
   "devDependencies": {
     "@babel/types": "^7.20.7",
+    "@headlessui/vue": "^1.7.8",
+    "@heroicons/vue": "^2.0.14",
     "@tailwindcss/typography": "^0.5.9",
     "@types/node": "^18.11.18",
     "@vitejs/plugin-vue": "^4.0.0",

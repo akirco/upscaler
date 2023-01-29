@@ -6,6 +6,7 @@ module.exports = {
       colors: {
         selfBorder: "#1e2226",
         selfBgColor: "#282c34",
+        dropDownBg: "#3e4551",
       },
     },
   },

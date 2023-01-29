@@ -2,6 +2,8 @@ lockfileVersion: 5.4
 
 specifiers:
   '@babel/types': ^7.20.7
+  '@headlessui/vue': ^1.7.8
+  '@heroicons/vue': ^2.0.14
   '@tailwindcss/typography': ^0.5.9
   '@types/node': ^18.11.18
   '@vitejs/plugin-vue': ^4.0.0
@@ -33,6 +35,8 @@ dependencies:
 
 devDependencies:
   '@babel/types': 7.20.7
+  '@headlessui/vue': 1.7.8_vue@3.2.45
+  '@heroicons/vue': 2.0.14_vue@3.2.45
   '@tailwindcss/typography': 0.5.9_tailwindcss@3.2.4
   '@types/node': 18.11.18
   '@vitejs/plugin-vue': 4.0.0_vite@4.0.4+vue@3.2.45
@@ -331,6 +335,23 @@ packages:
     resolution: {integrity: sha512-foQZKJig7Ob0BMAYBfcJk8d77QtOe7Wo4ox7ff1lQYoNNAb6jwcY1ncdoy2e9wQZzvNy7ODZCYJkK8kzmcAnAg==}
     dependencies:
       '@hapi/hoek': 9.3.0
+    dev: true
+
+  /@headlessui/vue/1.7.8_vue@3.2.45:
+    resolution: {integrity: sha512-J83kAz3drFjndXz/AOoxmgzVo/MtSNFFn/K9qhSSJ8EGhmRfwdJLhZ0W4NSrw6A10JxhXDlkjoV0UxOiBLr5iQ==}
+    engines: {node: '>=10'}
+    peerDependencies:
+      vue: ^3.2.0
+    dependencies:
+      vue: 3.2.45
+    dev: true
+
+  /@heroicons/vue/2.0.14_vue@3.2.45:
+    resolution: {integrity: sha512-pA1MLZPX0pyZdaQ5OHD/ILE8V/JCXyWvY2BQig7ZnYO7ZFap9sp969Qasn+1VWxnzB5BLWWcYu80OJPCboWo+g==}
+    peerDependencies:
+      vue: '>= 3'
+    dependencies:
+      vue: 3.2.45
     dev: true
 
   /@malept/cross-spawn-promise/1.1.1:

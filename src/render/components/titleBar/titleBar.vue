@@ -2,7 +2,6 @@
 import { onMounted, ref } from "vue";
 import maxIcon from "@/assets/icons/max.svg";
 import restoreIcon from "@/assets/icons/restore.svg";
-import setting from "@/assets/icons/setting.svg"
 
 const Icon = ref(maxIcon);
 const showFrame = window.showFrame;
@@ -52,8 +51,7 @@ function winMinSize() {
 function winClosed() {
   ipcRenderer.send("windowClosed", true);
 }
-function toSetting() {
-}
+
 </script>
 
 <template>
@@ -68,11 +66,11 @@ function toSetting() {
           {{ title }}
         </span>
       </div>
-      <div id="window-controls" class="grid top-0 right-0 h-full select-none w-[150px]" draggable="false">
-        <div class="flex justify-center items-center h-full w-full select-none btn btn-ghost normal-case min-h-0"
+      <div id="window-controls" class="grid top-0 right-0 h-full select-none w-[100px]" draggable="false">
+        <!-- <div class="flex justify-center items-center h-full w-full select-none btn btn-ghost normal-case min-h-0"
           @click="toSetting">
           <img class="icon" :srcset="setting" draggable="false" />
-        </div>
+        </div> -->
         <div class="flex justify-center items-center h-full w-full select-none hover:bg-gray-600 active:bg-zinc-500"
           @click="winMinSize">
           <img class="icon" srcset="../../assets/icons/min.svg 2.5x" draggable="false" />

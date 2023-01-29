@@ -105,15 +105,15 @@ export default {
 }
 
 .PictureComparison .divider-bar::after {
-  content: "<|>";
+  content: "< >";
   position: absolute;
   color: #ccc;
   text-align: center;
   line-height: 18px;
-  width: 40px;
+  width: 30px;
   height: 20px;
   background: #1e2226;
-  border-radius: 8px;
+  border-radius: 4px;
   top: 50%;
   left: 50%;
   transform: translate(-50%, -50%);

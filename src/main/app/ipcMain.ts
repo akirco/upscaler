@@ -93,9 +93,12 @@ function upscaleHandler(mainWindow: BrowserWindow) {
     const upscaleHero = await run(execsPath + "\\" + upscaler, params);
     upscaleHero.stderr.on("data", (data) => {
       data = data.toString();
+      if (data.length > 0 && data.length < 10) {
+        const num = parseFloat(data.split("%")[0]);
+        mainWindow.setProgressBar(num);
+      }
 
       mainWindow.webContents.send(commands.upscale, data);
-
       if (data.includes("invalid gpu") || data.includes("failed")) {
         mainWindow.webContents.send(commands.failed);
       }
@@ -103,8 +106,13 @@ function upscaleHandler(mainWindow: BrowserWindow) {
       }
     });
     upscaleHero.stderr.on("close", () => {
+      mainWindow.setProgressBar(-1);
       mainWindow.webContents.send(commands.done);
     });
+  });
+  // *  重新加载
+  ipcMain.on(commands.reload, () => {
+    mainWindow.reload();
   });
 
   // * 选择目录
