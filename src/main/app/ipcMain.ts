@@ -107,7 +107,7 @@ function upscaleHandler(mainWindow: BrowserWindow) {
     });
   });
 
-  // // * 选择目录
+  // * 选择目录
   // ipcMain.handle(channels.selectFolder, async () => {
   //   const { canceled, filePaths } = await dialog.showOpenDialog({
   //     properties: ["openDirectory"],
@@ -120,7 +120,7 @@ function upscaleHandler(mainWindow: BrowserWindow) {
   //   }
   // });
 
-  // // * set image path
+  // * set image path
   // ipcMain.on(channels.setInputPath, (_, args: string) => {
   //   const ext = args.substring(args.lastIndexOf("."), args.length);
   //   if (ext === ".jpg" || ext === ".png") {
@@ -130,12 +130,12 @@ function upscaleHandler(mainWindow: BrowserWindow) {
   //   }
   // });
 
-  // //* setOutputPath
+  //* setOutputPath
   // ipcMain.on(channels.setOutputPath, (_, args) => {
   //   console.log(args);
   // });
 
-  // //* setModel
+  //* setModel
   // ipcMain.on(channels.setUpscaleModel, (_, args) => {
   //   console.log(args);
   // });

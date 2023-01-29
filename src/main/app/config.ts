@@ -1,5 +1,5 @@
 import path from "path";
-import { BrowserWindowConstructorOptions } from "electron";
+import type { BrowserWindowConstructorOptions } from "electron";
 
 const platform = process.platform;
 
