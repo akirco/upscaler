@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { reactive, ref, onMounted, computed, watch } from "vue";
+import { reactive, ref, onMounted, computed, watch, toRaw } from "vue";
 import { useLoading } from 'vue-loading-overlay'
 import { Menu, MenuButton, MenuItems, MenuItem } from '@headlessui/vue'
 import type { PluginApi, ActiveLoader } from "vue-loading-overlay"
@@ -41,10 +41,18 @@ const model = ref(selected)
 const disabled = ref(true)
 const inputFile = ref(empty)
 const outputFile = ref(empty);
-const isSelected = ref(false)
 const container = ref()
 const slotText = ref("")
 const showInfo = ref(false)
+const currentMode = ref("✓")
+const singleMode = ref(true)
+const parallelMode = ref(false)
+const singlePreview = ref(true)
+const parallelPreview = ref(false)
+const singleReset = ref(false);
+const parallelReset = ref(false);
+const parallelCount = ref(1);
+const parallelTasks = ref<{ complete: boolean, filepath: string, progress: number }[]>([])
 let loading: PluginApi = null;
 let loader: ActiveLoader = null;
 
@@ -62,22 +70,57 @@ const selectInput = async () => {
   const inputPath = await ipcRenderer.invoke(channels.selectInput);
   if (inputPath === "cancelled") return;
   disabled.value = false
-  isSelected.value = true
+  singleMode.value = false
+  singleReset.value = true
   inputFile.value = "images:///" + inputPath;
 }
-const startEnhanced = async () => {
-  const opts = {
-    "upscaler": picked.value,
-    "scale": scale.value,
-    "model": model.value,
-    "input": inputFile.value.substring(10),
-    "output": getOutputPath(model.value, inputFile.value.substring(10)),
-  }
 
-  ipcRenderer.send(channels.startEhanced, opts);
-  loader = loading.show()
+const selectFolder = async () => {
+  const files: string[] | "cancelled" = await ipcRenderer.invoke(channels.selectFolder);
+  if (files === "cancelled") return;
+  disabled.value = false
+  parallelMode.value = false
+  parallelReset.value = true
+  files.forEach(file => {
+    const task = {
+      complete: false,
+      filepath: file,
+      progress: 0
+    }
+    parallelTasks.value.push(task)
+  });
 }
 
+const startEnhanced = async () => {
+  console.log("singlePreview:", singlePreview.value);
+  console.log("parallelPreview:", parallelPreview.value);
+  let options = {}
+  if (singlePreview.value) {
+    options = {
+      "upscaler": picked.value,
+      "scale": scale.value,
+      "model": model.value,
+      "input": inputFile.value.substring(10),
+      "output": getOutputPath(model.value, inputFile.value.substring(10)),
+    }
+    console.log(options);
+
+    ipcRenderer.send(channels.startSingleTask, options);
+    loader = loading.show()
+  } else if (parallelPreview.value) {
+    options = {
+      "upscaler": picked.value,
+      "scale": scale.value,
+      "model": model.value,
+      "parallelCount": parallelCount.value,
+      "parallelTasks": toRaw(parallelTasks.value)
+    }
+    console.log(options);
+    ipcRenderer.send(channels.startParallelTasks, options);
+  }
+}
+
+// * single mode
 ipcRenderer.on(commands.upscale, (_, data) => {
   if (data.length > 0 && data.length < 10) {
     if (data === "0.00%") {
@@ -96,15 +139,50 @@ ipcRenderer.on(commands.failed, () => {
   setTimeout(() => {
     showInfo.value = false
   }, 3500)
-  // ipcRenderer.send(commands.reload)
+  ipcRenderer.send(commands.reload)
 })
 
 
-const reset = () => {
+const singleModeReset = () => {
   inputFile.value = empty
   outputFile.value = empty
-  isSelected.value = false
   disabled.value = true
+  singleMode.value = true
+  parallelMode.value = false
+  singleReset.value = false
+  parallelPreview.value = false
+  singlePreview.value = true
+}
+const parallelModeReset = () => {
+  disabled.value = true
+  singleMode.value = false
+  parallelMode.value = true
+  parallelReset.value = false
+  parallelPreview.value = true
+  singlePreview.value = false
+  parallelTasks.value = null
+}
+
+const changeSingleMode = () => {
+  parallelMode.value = false
+  singleMode.value = true
+  parallelPreview.value = false
+  singlePreview.value = true
+}
+
+const changeParallelMode = () => {
+  parallelMode.value = true
+  singleMode.value = false
+  parallelPreview.value = true
+  singlePreview.value = false
+}
+
+const plusParallel = () => {
+  parallelCount.value++;
+}
+
+const subParallel = () => {
+  parallelCount.value > 1 ? parallelCount.value-- : parallelCount.value = 1;
 }
 
 const openExternalGithub = () => {
@@ -119,7 +197,7 @@ const openExternalGithub = () => {
     <div class="fixed top-10 w-56 text-right right-[10px] z-[9999]">
       <Menu as="div" class="relative inline-block text-left">
         <div>
-          <MenuButton class="btn btn-active btn-ghost min-h-0 h-[35px]">
+          <MenuButton class="btn min-h-0 h-[35px] rounded bg-menuBg shadow-sm border-none">
             Help
             <img class="ml-2 -mr-1 h-5 w-5 text-violet-200 hover:text-violet-100" :srcset="setting" draggable="false" />
           </MenuButton>
@@ -129,21 +207,30 @@ const openExternalGithub = () => {
           leave-active-class="transition duration-75 ease-in" leave-from-class="transform scale-100 opacity-100"
           leave-to-class="transform scale-95 opacity-0">
           <MenuItems
-            class=" shadow-2xl absolute right-0 mt-2 w-56 origin-top-right  rounded-md  bg-dropDownBg  ring-1 ring-black ring-opacity-5 focus:outline-none">
+            class=" shadow-2xl absolute right-0 mt-2 w-56 origin-top-right  rounded  bg-dropDownBg  ring-1 ring-black ring-opacity-5 focus:outline-none">
             <div class="px-1 py-1">
               <MenuItem v-slot="{ active }">
               <button :class="[
-                active ? 'bg-selfBgColor text-white' : 'text-gray-400',
-                'group flex w-full items-center rounded-md px-2 py-2 text-sm',
-              ]">
-                <div :active="active" class="mr-2 h-5 w-5 text-violet-400" aria-hidden="true"></div>
-                Change Mode
+                active ? 'bg-menuBg text-white' : 'text-gray-400',
+                'group flex w-full items-center rounded px-2 py-2 text-sm',
+              ]" @click.once="changeSingleMode">
+                <div :active="active" class="mr-2 h-5 w-5 text-violet-400" aria-hidden="true">{{ currentMode }}</div>
+                Single-task Mode
               </button>
               </MenuItem>
               <MenuItem v-slot="{ active }">
               <button :class="[
-                active ? 'bg-selfBgColor text-white' : 'text-gray-400',
-                'group flex w-full items-center rounded-md px-2 py-2 text-sm',
+                active ? 'bg-menuBg text-white' : 'text-gray-400',
+                'group flex w-full items-center rounded px-2 py-2 text-sm',
+              ]" @click.once="changeParallelMode">
+                <div :active="active" class="mr-2 h-5 w-5 text-violet-400" aria-hidden="true"></div>
+                Multi-task Parallel Mode
+              </button>
+              </MenuItem>
+              <MenuItem v-slot="{ active }">
+              <button :class="[
+                active ? 'bg-menuBg text-white' : 'text-gray-400',
+                'group flex w-full items-center rounded px-2 py-2 text-sm',
               ]" @click="openExternalGithub">
                 <div :active="active" class="mr-2 h-5 w-5 text-violet-400" aria-hidden="true"></div>
                 Github Repo
@@ -153,8 +240,8 @@ const openExternalGithub = () => {
             <div class="px-1 py-1">
               <MenuItem v-slot="{ active }">
               <button :class="[
-                active ? 'bg-selfBgColor text-white' : 'text-gray-400',
-                'group flex w-full items-center rounded-md px-2 py-2 text-sm',
+                active ? 'bg-menuBg text-white' : 'text-gray-400',
+                'group flex w-full items-center rounded px-2 py-2 text-sm',
               ]">
                 <div :active="active" class="mr-2 h-5 w-5 text-violet-400" aria-hidden="true"></div>
                 Check update
@@ -162,8 +249,8 @@ const openExternalGithub = () => {
               </MenuItem>
               <MenuItem v-slot="{ active }">
               <button :class="[
-                active ? 'bg-selfBgColor text-white' : 'text-gray-400',
-                'group flex w-full items-center rounded-md px-2 py-2 text-sm',
+                active ? 'bg-menuBg text-white' : 'text-gray-400',
+                'group flex w-full items-center rounded px-2 py-2 text-sm',
               ]">
                 <div :active="active" class="mr-2 h-5 w-5 text-violet-400" aria-hidden="true"></div>
                 Help
@@ -173,8 +260,8 @@ const openExternalGithub = () => {
             <div class="px-1 py-1">
               <MenuItem v-slot="{ active }">
               <button :class="[
-                active ? 'bg-selfBgColor text-white' : 'text-gray-400',
-                'group flex w-full items-center rounded-md px-2 py-2 text-sm',
+                active ? 'bg-menuBg text-white' : 'text-gray-400',
+                'group flex w-full items-center rounded px-2 py-2 text-sm',
               ]">
                 <div :active="active" class="mr-2 h-5 w-5 text-violet-400" aria-hidden="true"></div>
                 About
@@ -186,7 +273,7 @@ const openExternalGithub = () => {
       </Menu>
     </div>
     <div class="grid grid-cols-3 gap-2 h-full w-full p-3">
-      <div
+      <div v-if="singlePreview"
         class="w-full h-full col-span-2 bg-base-100  rounded-lg shadow-xl p-3 border-gray-700 border-2 border-dashed border-dark-50"
         ref="container">
         <TipBox content="文件处理失败，请稍后重试..." v-if="showInfo"
@@ -202,6 +289,53 @@ const openExternalGithub = () => {
         <p class="fixed left-[48%] bottom-[46%]  text-white font-semibold z-[9999] opacity-100">{{
           slotText.split("%")[0]
         }}</p>
+      </div>
+      <div v-if="parallelPreview" class="w-full h-full col-span-2 bg-base-100  rounded-lg shadow-xl p-3">
+        <div class="badge badge-primary badge-outline">Parallel Task count</div>
+        <div class="divider mt-0 mb-0"></div>
+        <div
+          class="w-full col-span-2 bg-base-200 shadow p-3  inline-flex flex-row items-center justify-between gap-x-3 text-center">
+          <div class="flex flex-col bg-neutral rounded text-neutral-content w-[100px] select-none">
+            <span class="font-mono text-5xl">
+              {{ parallelCount }}
+            </span>
+          </div>
+          <div class="btn-group">
+            <button class="btn btn-active" @click="plusParallel">Plus</button>
+            <button class="btn" @click="subParallel">Subtract</button>
+          </div>
+        </div>
+        <div class="mt-3 h-[450px] overflow-y-scroll bg-base-200 shadow p-1">
+          <table class="table w-full">
+            <thead>
+              <tr>
+                <th>Status</th>
+                <th>File Details</th>
+                <th>Progress</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr v-for="item in parallelTasks">
+                <th>
+                  <label>
+                    <input type="checkbox" class="checkbox" :checked="item.complete" />
+                  </label>
+                </th>
+                <td>
+                  <div class="flex items-center space-x-3">
+                    <div>
+                      <div class="text-sm opacity-50">{{ item.filepath }}</div>
+                    </div>
+                  </div>
+                </td>
+                <td>
+                  <progress class="progress progress-primary w-56" :value="item.progress" max="100"></progress>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+
+        </div>
       </div>
       <div class="h-full w-full flex justify-between flex-col">
         <div class="grid grid-rows-3 gap-5">
@@ -243,14 +377,23 @@ const openExternalGithub = () => {
         <div>
           <div class="card w-[calc(100%-1px)] bg-base-100 shadow-xl h-[calc(100%-1px)]">
             <div class="card-body items-center text-center gap-5">
-              <button :disabled="!disabled" class="btn btn-wide mt-3 btn-accent" type="button" v-if="!isSelected"
+              <button :disabled="!disabled" class="btn btn-wide mt-3 btn-accent" type="button" v-if="singleMode"
                 @click="selectInput">
                 select image
               </button>
-              <button class="btn btn-wide mt-3 btn-accent" type="button" v-if="isSelected" @click="reset">
+              <button :disabled="!disabled" class="btn btn-wide mt-3 btn-accent" type="button" v-if="parallelMode"
+                @click="selectFolder">
+                select Folder
+              </button>
+              <button class="btn btn-wide mt-3 btn-accent" type="button" v-if="singleReset" @click="singleModeReset">
                 reset
               </button>
-              <button class="btn btn-wide mt-3" type="button" @click="startEnhanced" :disabled="disabled">
+              <button class="btn btn-wide mt-3 btn-accent" type="button" v-if="parallelReset"
+                @click="parallelModeReset">
+                reset
+              </button>
+              <button class="btn btn-wide mt-3" type="button" @click="startEnhanced" :disabled="disabled"
+                v-if="singleModeReset">
                 start
               </button>
             </div>

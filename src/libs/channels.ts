@@ -2,7 +2,8 @@ export const channels = {
   selectInput: "selectInput",
   setInputPath: "setInputFile",
   setOutputPath: "setOutputPath",
-  startEhanced: "startEhanced",
+  startSingleTask: "startSingleTask",
+  startParallelTasks: "startParallelTasks",
   selectFolder: "selectFolder",
   setUpscaleModel: "setUpscaleModel",
 };

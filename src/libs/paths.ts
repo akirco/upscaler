@@ -15,3 +15,4 @@ if (NODE_ENV === "development") {
 export const rootDir = join(resourcesPath, "..");
 export const execsPath = join(resourcesPath, "bin");
 export const modelsPath = join(resourcesPath, "models");
+export const outputPath = join(resourcesPath, "..", "images");

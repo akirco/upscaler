@@ -5,6 +5,8 @@ import { channels } from "../../libs/channels";
 import { commands } from "../../libs/commands";
 import { run } from "../../libs/exec";
 import { execsPath, modelsPath } from "../../libs/paths";
+import { parallelTasks } from "../../libs/multi";
+import { walker } from "../../libs/walker";
 
 function windowAction(mainWindow: BrowserWindow) {
   // 窗口事件
@@ -61,7 +63,7 @@ function upscaleHandler(mainWindow: BrowserWindow) {
     }
   });
   //* start enhance
-  ipcMain.on(channels.startEhanced, async (event, args) => {
+  ipcMain.on(channels.startSingleTask, async (event, args) => {
     const { upscaler, scale, model, input, output } = args;
     let params = null;
     if (upscaler === "realesrgan-ncnn-vulkan") {
@@ -118,18 +120,24 @@ function upscaleHandler(mainWindow: BrowserWindow) {
     shell.openExternal(data);
   });
 
+  // * 多任务并行
+  ipcMain.on(channels.startParallelTasks, async (_, args) => {
+    const { upscaler, scale, model, parallelCount, parallelTasks } = args;
+    console.log(args);
+  });
+
   // * 选择目录
-  // ipcMain.handle(channels.selectFolder, async () => {
-  //   const { canceled, filePaths } = await dialog.showOpenDialog({
-  //     properties: ["openDirectory"],
-  //   });
-  //   if (canceled) {
-  //     console.log("operation cancelled");
-  //     return "cancelled";
-  //   } else {
-  //     return filePaths[0];
-  //   }
-  // });
+  ipcMain.handle(channels.selectFolder, async () => {
+    const { canceled, filePaths } = await dialog.showOpenDialog({
+      properties: ["openDirectory"],
+    });
+    if (canceled) {
+      console.log("operation cancelled");
+      return "cancelled";
+    } else {
+      return await walker(filePaths[0], { wanted: [".jpg", ".png"] });
+    }
+  });
 
   // * set image path
   // ipcMain.on(channels.setInputPath, (_, args: string) => {
