@@ -302,10 +302,12 @@ const openExternalGithub = () => {
           </div>
           <div class="btn-group">
             <button class="btn btn-active" @click="plusParallel">Plus</button>
-            <button class="btn" @click="subParallel">Subtract</button>
+            <button class="btn" :disabled="parallelCount === 1" @click="subParallel">Subtract</button>
           </div>
         </div>
-        <div class="mt-3 h-[450px] overflow-y-scroll bg-base-200 shadow p-1">
+        <div class="badge badge-primary badge-outline">Current Tasks</div>
+        <div class="divider mt-0 mb-0"></div>
+        <div class="mt-3 h-[400px] overflow-y-scroll bg-base-200 shadow p-1">
           <table class="table w-full">
             <thead>
               <tr>
