@@ -1,6 +1,5 @@
 module.exports = {
   content: ["./index.html", "./src/render/**/*.{vue,js,ts,jsx,tsx}"],
-  darkMode: "class",
   theme: {
     extend: {
       colors: {
@@ -8,6 +7,7 @@ module.exports = {
         selfBgColor: "#282c34",
         dropDownBg: "#272c37",
         menuBg: "#111318",
+        menulightBg: "#f9fafb",
       },
     },
   },

@@ -103,8 +103,6 @@ const startEnhanced = async () => {
       "input": inputFile.value.substring(10),
       "output": getOutputPath(model.value, inputFile.value.substring(10)),
     }
-    console.log(options);
-
     ipcRenderer.send(channels.startSingleTask, options);
     loader = loading.show()
   } else if (parallelPreview.value) {
@@ -189,6 +187,10 @@ const openExternalGithub = () => {
   ipcRenderer.send(commands.openExternalGithub, "https://github.com/akirco/upscaler")
 }
 
+const toggleDark = () => {
+  ipcRenderer.invoke("dark-mode:toggle")
+}
+
 </script>
 
 <template>
@@ -197,7 +199,8 @@ const openExternalGithub = () => {
     <div class="fixed top-10 w-56 text-right right-[10px] z-[9999]">
       <Menu as="div" class="relative inline-block text-left">
         <div>
-          <MenuButton class="btn min-h-0 h-[35px] rounded bg-menuBg shadow-sm border-none">
+          <MenuButton
+            class="btn min-h-0 h-[35px] rounded-sm bg-menulightBg text-black hover:bg-gray-100 dark:bg-menuBg dark:hover:bg-slate-900 dark:text-white  shadow-sm border-none">
             Help
             <img class="ml-2 -mr-1 h-5 w-5 text-violet-200 hover:text-violet-100" :srcset="setting" draggable="false" />
           </MenuButton>
@@ -207,7 +210,7 @@ const openExternalGithub = () => {
           leave-active-class="transition duration-75 ease-in" leave-from-class="transform scale-100 opacity-100"
           leave-to-class="transform scale-95 opacity-0">
           <MenuItems
-            class=" shadow-2xl absolute right-0 mt-2 w-56 origin-top-right  rounded  bg-dropDownBg  ring-1 ring-black ring-opacity-5 focus:outline-none">
+            class=" shadow-2xl absolute right-0 mt-2 w-56 origin-top-right  rounded bg-menulightBg  dark:bg-dropDownBg  ring-1 ring-black ring-opacity-5 focus:outline-none">
             <div class="px-1 py-1">
               <MenuItem v-slot="{ active }">
               <button :class="[
@@ -231,38 +234,18 @@ const openExternalGithub = () => {
               <button :class="[
                 active ? 'bg-menuBg text-white' : 'text-gray-400',
                 'group flex w-full items-center rounded px-2 py-2 text-sm',
+              ]" @click="toggleDark">
+                <div :active="active" class="mr-2 h-5 w-5 text-violet-400" aria-hidden="true"></div>
+                Toggle Theme
+              </button>
+              </MenuItem>
+            </div>
+            <div class="px-1 py-1">
+              <MenuItem v-slot="{ active }">
+              <button :class="[
+                active ? 'bg-menuBg text-white' : 'text-gray-400',
+                'group flex w-full items-center rounded px-2 py-2 text-sm',
               ]" @click="openExternalGithub">
-                <div :active="active" class="mr-2 h-5 w-5 text-violet-400" aria-hidden="true"></div>
-                Github Repo
-              </button>
-              </MenuItem>
-            </div>
-            <div class="px-1 py-1">
-              <MenuItem v-slot="{ active }">
-              <button :class="[
-                active ? 'bg-menuBg text-white' : 'text-gray-400',
-                'group flex w-full items-center rounded px-2 py-2 text-sm',
-              ]">
-                <div :active="active" class="mr-2 h-5 w-5 text-violet-400" aria-hidden="true"></div>
-                Check update
-              </button>
-              </MenuItem>
-              <MenuItem v-slot="{ active }">
-              <button :class="[
-                active ? 'bg-menuBg text-white' : 'text-gray-400',
-                'group flex w-full items-center rounded px-2 py-2 text-sm',
-              ]">
-                <div :active="active" class="mr-2 h-5 w-5 text-violet-400" aria-hidden="true"></div>
-                Help
-              </button>
-              </MenuItem>
-            </div>
-            <div class="px-1 py-1">
-              <MenuItem v-slot="{ active }">
-              <button :class="[
-                active ? 'bg-menuBg text-white' : 'text-gray-400',
-                'group flex w-full items-center rounded px-2 py-2 text-sm',
-              ]">
                 <div :active="active" class="mr-2 h-5 w-5 text-violet-400" aria-hidden="true"></div>
                 About
               </button>
@@ -274,16 +257,16 @@ const openExternalGithub = () => {
     </div>
     <div class="grid grid-cols-3 gap-2 h-full w-full p-3">
       <div v-if="singlePreview"
-        class="w-full h-full col-span-2 bg-base-100  rounded-lg shadow-xl p-3 border-gray-700 border-2 border-dashed border-dark-50"
+        class="w-full h-full col-span-2 bg-base-100  rounded-lg shadow-xl p-3 border-gray-300 dark:border-gray-700 border-2 border-dashed border-dark-50"
         ref="container">
         <TipBox content="文件处理失败，请稍后重试..." v-if="showInfo"
           class="fixed left-[12%] top-[12%] w-[400px] z-[9999] shadow-2xl" />
         <ImageViewer width="614" height="564" class="m-auto">
           <template #left>
-            <img :src="inputFile" class="rounded-lg shadow-lg object-contain h-[100%] w-[96%]" />
+            <img :src="inputFile" class="rounded-lg shadow-lg object-contain h-[100%] w-[96%]" draggable="false" />
           </template>
           <template #right>
-            <img :src="outputFile" class="rounded-lg shadow-lg object-contain h-[100%] w-[96%]" />
+            <img :src="outputFile" class="rounded-lg shadow-lg object-contain h-[100%] w-[96%]" draggable="false" />
           </template>
         </ImageViewer>
         <p class="fixed left-[48%] bottom-[46%]  text-white font-semibold z-[9999] opacity-100">{{
@@ -379,22 +362,23 @@ const openExternalGithub = () => {
         <div>
           <div class="card w-[calc(100%-1px)] bg-base-100 shadow-xl h-[calc(100%-1px)]">
             <div class="card-body items-center text-center gap-5">
-              <button :disabled="!disabled" class="btn btn-wide mt-3 btn-accent" type="button" v-if="singleMode"
+              <button :disabled="!disabled" class="btn btn-wide mt-3 btn-accent rounded" type="button" v-if="singleMode"
                 @click="selectInput">
                 select image
               </button>
-              <button :disabled="!disabled" class="btn btn-wide mt-3 btn-accent" type="button" v-if="parallelMode"
-                @click="selectFolder">
+              <button :disabled="!disabled" class="btn btn-wide mt-3 btn-accent rounded" type="button"
+                v-if="parallelMode" @click="selectFolder">
                 select Folder
               </button>
-              <button class="btn btn-wide mt-3 btn-accent" type="button" v-if="singleReset" @click="singleModeReset">
+              <button class="btn btn-wide mt-3 btn-accent rounded" type="button" v-if="singleReset"
+                @click="singleModeReset">
                 reset
               </button>
-              <button class="btn btn-wide mt-3 btn-accent" type="button" v-if="parallelReset"
+              <button class="btn btn-wide mt-3 btn-accent rounded" type="button" v-if="parallelReset"
                 @click="parallelModeReset">
                 reset
               </button>
-              <button class="btn btn-wide mt-3" type="button" @click="startEnhanced" :disabled="disabled"
+              <button class="btn btn-wide mt-3 rounded" type="button" @click="startEnhanced" :disabled="disabled"
                 v-if="singleModeReset">
                 start
               </button>

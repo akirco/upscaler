@@ -71,13 +71,14 @@ function winClosed() {
           @click="toSetting">
           <img class="icon" :srcset="setting" draggable="false" />
         </div> -->
-        <div class="flex justify-center items-center h-full w-full select-none hover:bg-gray-600 active:bg-zinc-500"
+        <div
+          class="flex justify-center items-center h-full w-full select-none hover:bg-gray-200 dark:hover:bg-gray-600 active:bg-zinc-500"
           @click="winMinSize">
           <img class="icon" srcset="../../assets/icons/min.svg 2.5x" draggable="false" />
         </div>
         <div class="flex justify-center items-center h-full w-full select-none hover:bg-red-500 active:bg-red-200"
           @click="winClosed">
-          <img class="icon" srcset="../../assets/icons/closed.svg 1.75x" draggable="false" />
+          <img class="icon" srcset="../../assets/icons/closed.svg 1.85x" draggable="false" />
         </div>
       </div>
       <!--end window-->

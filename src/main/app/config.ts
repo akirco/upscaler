@@ -8,7 +8,7 @@ export const windowConfig: BrowserWindowConstructorOptions = {
   height: 650,
   frame: platform !== "win32",
   hasShadow: true,
-  // thickFrame: false,
+  thickFrame: false,
   resizable: false,
   show: false,
   icon: path.join(__dirname, "..", "..", "/.vue/electron.ico"),

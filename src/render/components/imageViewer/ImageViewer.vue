@@ -101,7 +101,7 @@ export default {
   height: 100%;
   display: block;
   z-index: 2;
-  box-shadow: 0 0 10px 1px rgba(0, 0, 0, 0.4);
+  box-shadow: 0 0 2px 1px rgba(0, 0, 0, 0.4);
 }
 
 .PictureComparison .divider-bar::after {
