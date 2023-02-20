@@ -39,7 +39,7 @@ function winMinSize() {
 // function toggleSize() {
 //   ipcRenderer.send("toggleSize", true);
 //   ipcRenderer.on("winState", (event, args) => {
-//     // console.log("渲染进程收到的消息是：", args);
+// console.log("渲染进程收到的消息是：", args);
 //     if (args === "maximize") {
 //       Icon.value = restoreIcon;
 //     } else if (args === "restore") {
@@ -68,9 +68,9 @@ function winClosed() {
       </div>
       <div id="window-controls" class="grid top-0 right-0 h-full select-none w-[100px]" draggable="false">
         <!-- <div class="flex justify-center items-center h-full w-full select-none btn btn-ghost normal-case min-h-0"
-          @click="toSetting">
-          <img class="icon" :srcset="setting" draggable="false" />
-        </div> -->
+            @click="toSetting">
+            <img class="icon" :srcset="setting" draggable="false" />
+          </div> -->
         <div
           class="flex justify-center items-center h-full w-full select-none hover:bg-gray-200 dark:hover:bg-gray-600 active:bg-zinc-500"
           @click="winMinSize">

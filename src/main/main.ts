@@ -8,7 +8,7 @@ async function loadDevtools() {
   await session.defaultSession.loadExtension(VUEJS3_DEVTOOLS, {
     allowFileAccess: true,
   });
-  console.log("install vue-devtools sucess!");
+  // console.log("install vue-devtools sucess!");
 }
 
 async function appReady() {

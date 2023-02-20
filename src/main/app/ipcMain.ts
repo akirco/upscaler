@@ -5,8 +5,8 @@ import { channels } from "../../libs/channels";
 import { commands } from "../../libs/commands";
 import { run } from "../../libs/exec";
 import { execsPath, modelsPath } from "../../libs/paths";
-import { parallelTasks } from "../../libs/multi";
 import { walker } from "../../libs/walker";
+import Queue from "../../libs/queue";
 
 function windowAction(mainWindow: BrowserWindow) {
   // 窗口事件
@@ -122,8 +122,21 @@ function upscaleHandler(mainWindow: BrowserWindow) {
 
   // * 多任务并行
   ipcMain.on(channels.startParallelTasks, async (_, args) => {
-    const { upscaler, scale, model, parallelCount, parallelTasks } = args;
-    console.log(args);
+    const { upscaler, scale, model, parallelCount, inputs } = args;
+    const queue = new Queue(inputs, {
+      upscaler,
+      scale,
+      model,
+      parallelCount,
+    });
+    await queue.run((input: any, num: any) => {
+      const data = {
+        currentTask: input,
+        progress: num,
+      };
+      mainWindow.webContents.send(commands.parallel, data);
+    });
+    mainWindow.webContents.send(commands.parallelDone);
   });
 
   // * 选择目录
@@ -132,7 +145,7 @@ function upscaleHandler(mainWindow: BrowserWindow) {
       properties: ["openDirectory"],
     });
     if (canceled) {
-      console.log("operation cancelled");
+      // console.log("operation cancelled");
       return "cancelled";
     } else {
       return await walker(filePaths[0], { wanted: [".jpg", ".png"] });

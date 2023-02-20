@@ -3,5 +3,8 @@ export const commands = {
   failed: "failed",
   done: "upscaleDone",
   reload: "reload",
+  parallel: "startParallel",
+  parallelDone: "parallelDone",
+  ok: "ok",
   openExternalGithub: "openExternalGithub",
 };
