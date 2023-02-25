@@ -1,12 +1,12 @@
 <script setup lang="ts">
-import { reactive, ref, onMounted, computed, watch, toRaw } from "vue";
+import { reactive, ref, computed, watch, toRaw } from "vue";
 import { useLoading } from 'vue-loading-overlay'
 import { Menu, MenuButton, MenuItems, MenuItem } from '@headlessui/vue'
 import type { PluginApi, ActiveLoader } from "vue-loading-overlay"
+import ImageViewer from "@/components/imageViewer/ImageViewer.vue";
 import MainContent from "@/layout/main-content.vue";
 import TopBar from "@/components/titleBar";
-import ImageViewer from "@/components/imageViewer/ImageViewer.vue";
-import TipBox from "./components/tipBox/TipBox.vue";
+import { realesrganModel, realsrModel } from "@/utils/models"
 import empty from '@/assets/icons/empty.svg'
 import setting from "@/assets/icons/setting.svg"
 import { getOutputPath } from "@/utils/index"
@@ -14,6 +14,7 @@ import { channels } from "../libs/channels"
 import { commands } from "../libs/commands";
 
 
+type TypeTask = { isCompleted: boolean, input: string, progress: number }
 const ipcRenderer = window.ipcRenderer
 const upscaler = reactive({
   realesrgan: "realesrgan-ncnn-vulkan",
@@ -22,33 +23,24 @@ const upscaler = reactive({
 const scale = ref(4);
 const picked = ref(upscaler.realesrgan)
 const selected = ref("");
-const models = computed(() => {
-  if (picked.value === upscaler.realesrgan) {
-    return ["realesrgan-x4plus-anime", "realesrgan-x4plus", "remacri", "4x-AnimeSharp-opt-fp16", "4x-AnimeSharp-opt-fp32", "ultrasharp", "ultramix_balanced"];
-  } else {
-    return ["models-DF2K", "models-DF2K_JPEG"];
-  }
-})
-
 const model = ref(selected)
 const inputFile = ref(empty)
 const outputFile = ref(empty);
 const container = ref()
 const slotText = ref("")
-const showInfo = ref(false)
 const checkedModeFlag = ref("")
-const parallelTasks = ref([])
 const parallelCount = ref(1);
+const parallelTasks = reactive<TypeTask[]>([])
 let loading: PluginApi = null;
 let loader: ActiveLoader = null;
-
-const taskStatus = reactive({
-  currentTask: "",
-  progress: 0,
-})
-
-const taskCompleted = ref(false)
 const isSingleMode = ref(true)
+const models = computed(() => {
+  if (picked.value === upscaler.realesrgan) {
+    return realesrganModel;
+  } else {
+    return realsrModel;
+  }
+})
 const commonState = reactive({
   menuDisabled: false,
   radioDiabled: false,
@@ -80,16 +72,12 @@ watch(picked, (value, oldVal) => {
   }
 }, { immediate: true })
 watch(isSingleMode, (value, oldVal) => {
-  // console.log(value);
-  // single 
   if (value) {
     checkedModeFlag.value = "🙈"
   } else {
-    // parallel
     checkedModeFlag.value = "🙉"
   }
 }, { immediate: true })
-
 watch(inputFile, (val, old) => {
   if (val !== empty) {
     singleState.selectImageVisable = false
@@ -97,13 +85,10 @@ watch(inputFile, (val, old) => {
     singleState.startDisabled = false
   }
 }, { immediate: true })
-
 watch(parallelTasks, (val, old) => {
-  // console.log(toRaw(val).length);
   if (toRaw(val).length > 0) {
     parallelState.selectFolderVisable = false
     parallelState.resetVisable = true
-    parallelState.startDisabled = false
   }
 }, { immediate: true, deep: true })
 
@@ -128,8 +113,13 @@ const selectFolder = async () => {
   if (files === "cancelled") return;
   if (files.length > 0) {
     files.forEach(file => {
-      parallelTasks.value.push(file)
+      parallelTasks.push({
+        isCompleted: false,
+        input: file,
+        progress: 0
+      })
     });
+    parallelState.startDisabled = false
   }
 }
 
@@ -153,7 +143,7 @@ const startEnhanced = async () => {
       "scale": scale.value,
       "model": model.value,
       "parallelCount": parallelCount.value,
-      "inputs": toRaw(parallelTasks.value)
+      "paralllelTasks": toRaw(parallelTasks)
     }
     ipcRenderer.send(channels.startParallelTasks, options);
     parallelState.resetDisabled = true
@@ -171,27 +161,35 @@ ipcRenderer.on(commands.upscale, (_, data) => {
     slotText.value = data
   }
 })
-ipcRenderer.on(commands.parallel, (_, data) => {
-  taskStatus.currentTask = data.currentTask
-  taskStatus.progress = data.progress
-})
-ipcRenderer.on(commands.failed, () => {
-  showInfo.value = true
-  setTimeout(() => {
-    showInfo.value = false
-  }, 3500)
-})
 ipcRenderer.on(commands.done, () => {
   loader.hide()
   commonState.menuDisabled = false;
   slotText.value = ""
   outputFile.value = "images:///" + getOutputPath(model.value, inputFile.value.substring(10));
 })
-ipcRenderer.on(commands.parallelDone, () => {
-  taskCompleted.value = true
-  taskStatus.currentTask = ""
-  taskStatus.progress = 0
+
+ipcRenderer.on(commands.parallel, (_, data) => {
+  const { isCompleted, input, progress } = data
+  parallelTasks.forEach((task) => {
+    if (task.input === input) {
+      task.isCompleted = isCompleted;
+      task.progress = progress;
+    }
+  })
+})
+ipcRenderer.on(commands.parallelDone, (_, data) => {
+  const { isCompleted, input, progress } = data
+  parallelTasks.forEach((task) => {
+    if (task.input === input) {
+      task.isCompleted = isCompleted;
+      task.progress = progress;
+    }
+  })
+})
+ipcRenderer.on(commands.ok, () => {
+  console.log("isok");
   parallelState.resetDisabled = false
+  parallelState.startDisabled = false
   commonState.menuDisabled = false;
 })
 const singleModeReset = () => {
@@ -205,10 +203,7 @@ const parallelModeReset = () => {
   parallelState.selectFolderVisable = true
   parallelState.resetVisable = false
   parallelState.startDisabled = true
-  parallelTasks.value = []
-  taskCompleted.value = false
-  taskStatus.currentTask = ""
-  taskStatus.progress = 0
+  parallelTasks.length = 0
 }
 
 const toggleMode = () => {
@@ -223,7 +218,6 @@ const subParallel = () => {
   parallelCount.value > 1 ? parallelCount.value-- : parallelCount.value = 1;
 }
 
-
 const openExternalGithub = () => {
   ipcRenderer.send(commands.openExternalGithub, "https://github.com/akirco/upscaler")
 }
@@ -231,7 +225,6 @@ const openExternalGithub = () => {
 const toggleDark = () => {
   ipcRenderer.invoke("dark-mode:toggle")
 }
-
 </script>
 
 <template>
@@ -290,9 +283,7 @@ const toggleDark = () => {
       <div v-if="isSingleMode"
         class="w-full h-full col-span-2 bg-base-100  rounded-lg shadow-xl p-3 border-gray-300 dark:border-gray-700 border-2 border-dashed border-dark-50"
         ref="container">
-        <TipBox content="文件处理失败，请稍后重试..." v-if="showInfo"
-          class="fixed left-[12%] top-[12%] w-[400px] z-[9999] shadow-2xl" />
-        <ImageViewer width="614" height="564" class="m-auto">
+        <ImageViewer width="614" height="564" class="m-auto select-none" draggable="false">
           <template #left>
             <img :src="inputFile" class="rounded-lg shadow-lg object-contain h-[100%] w-[96%]" draggable="false" />
           </template>
@@ -305,8 +296,8 @@ const toggleDark = () => {
         }}</p>
       </div>
       <div v-if="!isSingleMode" class="w-full h-full col-span-2 bg-base-100  rounded-lg shadow-xl p-3">
-        <div class="badge badge-primary badge-outline">Parallel Task count</div>
-        <div class="divider mt-0 mb-0"></div>
+        <div class="badge badge-primary badge-outline select-none">Parallel Task count</div>
+        <div class="divider mt-0 mb-0 select-none"></div>
         <div
           class="w-full col-span-2 bg-base-200 shadow p-3  inline-flex flex-row items-center justify-between gap-x-3 text-center">
           <div class="flex flex-col bg-neutral rounded text-neutral-content w-[100px] select-none">
@@ -319,12 +310,12 @@ const toggleDark = () => {
             <button class="btn" :disabled="parallelCount === 1" @click="subParallel">Subtract</button>
           </div>
         </div>
-        <div class="badge badge-primary badge-outline">Task queue</div>
+        <div class="badge badge-primary badge-outline select-none">Task queue</div>
         <div class="divider mt-0 mb-0"></div>
-        <div class="mt-3 h-[400px] overflow-y-scroll bg-base-200 shadow p-1">
-          <table class="table w-full">
+        <div class="h-[420px] overflow-y-scroll bg-base-200" id="scroll-view">
+          <table class="table w-full select-none rounded-none" draggable="false">
             <thead>
-              <tr>
+              <tr class="sticky top-0 z-[9999] select-none" draggable="false">
                 <th>Task State</th>
                 <th>Task Queue</th>
                 <th>Task Progress</th>
@@ -334,20 +325,19 @@ const toggleDark = () => {
               <tr v-for="item in parallelTasks">
                 <th>
                   <label>
-                    <input type="checkbox" class="checkbox" :checked="taskCompleted" />
+                    <input type="checkbox" class="checkbox" :checked="item.isCompleted" />
                   </label>
                 </th>
                 <td>
                   <div class="flex items-center space-x-3">
                     <div>
-                      <div class="text-sm opacity-50">{{ item }}</div>
+                      <div class="text-sm opacity-50">{{ item.input.substring(0, 20) + "...🏷️" }}
+                      </div>
                     </div>
                   </div>
                 </td>
                 <td>
-                  <progress class="progress progress-primary w-56"
-                    :value="item === taskStatus.currentTask ? (taskCompleted ? 100 : taskStatus.progress) : 0"
-                    max="100"></progress>
+                  <progress class="progress progress-primary w-56" :value="item.progress" max="100"></progress>
                 </td>
               </tr>
             </tbody>
@@ -357,23 +347,23 @@ const toggleDark = () => {
       <div class="h-full w-full flex justify-between flex-col">
         <div class="grid grid-rows-3 gap-5">
           <div>
-            <div class="badge badge-primary badge-outline">upscaler</div>
+            <div class="badge badge-primary badge-outline select-none">upscaler</div>
             <div class="divider mt-0"></div>
             <div class="grid grid-rows-2 gap-3">
               <div class="flex gap-3">
                 <input type="radio" name="radio-1" class="radio radio-primary" :value="upscaler.realesrgan"
                   v-model="picked as any" />
-                <label for="radio-1">{{ upscaler.realesrgan }}</label>
+                <label for="radio-1" class="select-none" draggable="false">{{ upscaler.realesrgan }}</label>
               </div>
               <div class="flex gap-3">
                 <input type="radio" name="radio-2" class="radio radio-primary" :value="upscaler.realsr
                 " v-model="picked as any" />
-                <label for="radio-2">{{ upscaler.realsr }}</label>
+                <label for="radio-2" class="select-none" draggable="false">{{ upscaler.realsr }}</label>
               </div>
             </div>
           </div>
           <div>
-            <div class="badge badge-primary badge-outline">scale</div>
+            <div class="badge badge-primary badge-outline select-none">scale</div>
             <div class="divider mt-0"></div>
             <input type="range" min="1" max="4" v-model="scale" class="range" step="1" />
             <div class="w-full flex justify-between text-xs px-2">
@@ -384,7 +374,7 @@ const toggleDark = () => {
             </div>
           </div>
           <div>
-            <div class="badge badge-primary badge-outline">models</div>
+            <div class="badge badge-primary badge-outline select-none">models</div>
             <div class="divider mt-0"></div>
             <select class="select select-bordered w-full max-w-xs" v-model="model">
               <option v-for="item in models">{{ item }}</option>
@@ -428,8 +418,3 @@ const toggleDark = () => {
   </MainContent>
 </template>
 
-<style scoped>
-* {
-  color: #a2a9b6;
-}
-</style>

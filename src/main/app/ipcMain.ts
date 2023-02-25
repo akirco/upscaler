@@ -1,6 +1,7 @@
 import { ipcMain, nativeTheme, dialog, shell } from "electron";
 import type { BrowserWindow } from "electron";
 import os from "node:os";
+import showNotifications from "./notification";
 import { channels } from "../../libs/channels";
 import { commands } from "../../libs/commands";
 import { run } from "../../libs/exec";
@@ -99,7 +100,6 @@ function upscaleHandler(mainWindow: BrowserWindow) {
         const num = parseFloat(data.split("%")[0]);
         mainWindow.setProgressBar(num);
       }
-
       mainWindow.webContents.send(commands.upscale, data);
       if (data.includes("invalid gpu") || data.includes("failed")) {
         mainWindow.webContents.send(commands.failed);
@@ -110,33 +110,45 @@ function upscaleHandler(mainWindow: BrowserWindow) {
     upscaleHero.stderr.on("close", () => {
       mainWindow.setProgressBar(-1);
       mainWindow.webContents.send(commands.done);
+      showNotifications("Upscaler Notice", "Task is all completed!");
     });
   });
-  // *  重新加载
   ipcMain.on(commands.reload, () => {
     mainWindow.reload();
   });
   ipcMain.on(commands.openExternalGithub, (_, data) => {
     shell.openExternal(data);
   });
-
-  // * 多任务并行
   ipcMain.on(channels.startParallelTasks, async (_, args) => {
-    const { upscaler, scale, model, parallelCount, inputs } = args;
-    const queue = new Queue(inputs, {
+    const { upscaler, scale, model, parallelCount, paralllelTasks } = args;
+    const queue = new Queue(paralllelTasks, {
       upscaler,
       scale,
       model,
       parallelCount,
     });
-    await queue.run((input: any, num: any) => {
-      const data = {
-        currentTask: input,
-        progress: num,
-      };
-      mainWindow.webContents.send(commands.parallel, data);
-    });
-    mainWindow.webContents.send(commands.parallelDone);
+    await queue.run(
+      (input, progress) => {
+        const data = {
+          isCompleted: false,
+          input,
+          progress,
+        };
+        mainWindow.setProgressBar(progress);
+        mainWindow.webContents.send(commands.parallel, data);
+      },
+      (input, isCompleted) => {
+        const data = {
+          isCompleted,
+          input,
+          progress: 100,
+        };
+        mainWindow.setProgressBar(-1);
+        mainWindow.webContents.send(commands.parallelDone, data);
+      }
+    );
+    showNotifications("Upscaler Notice", "Tasks is all completed!");
+    mainWindow.webContents.send(commands.ok);
   });
 
   // * 选择目录
@@ -145,32 +157,11 @@ function upscaleHandler(mainWindow: BrowserWindow) {
       properties: ["openDirectory"],
     });
     if (canceled) {
-      // console.log("operation cancelled");
       return "cancelled";
     } else {
       return await walker(filePaths[0], { wanted: [".jpg", ".png"] });
     }
   });
-
-  // * set image path
-  // ipcMain.on(channels.setInputPath, (_, args: string) => {
-  //   const ext = args.substring(args.lastIndexOf("."), args.length);
-  //   if (ext === ".jpg" || ext === ".png") {
-  //     console.log("setImagePath:", args);
-  //   } else {
-  //     return;
-  //   }
-  // });
-
-  //* setOutputPath
-  // ipcMain.on(channels.setOutputPath, (_, args) => {
-  //   console.log(args);
-  // });
-
-  //* setModel
-  // ipcMain.on(channels.setUpscaleModel, (_, args) => {
-  //   console.log(args);
-  // });
 }
 
 export { windowAction, toggleDark, upscaleHandler };

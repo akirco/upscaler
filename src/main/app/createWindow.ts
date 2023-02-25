@@ -16,6 +16,7 @@ class InitWindow {
     fsmkdir();
     this.mainWindow.webContents.on("dom-ready", () => {
       this.mainWindow.removeMenu();
+      this.mainWindow.setMaximizable(false);
       Menu.setApplicationMenu(Menu.buildFromTemplate([]));
     });
     this.mainWindow.once("ready-to-show", async () => {

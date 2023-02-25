@@ -60,7 +60,7 @@ function winClosed() {
     <div id="drag-region" class="w-full h-full flex">
       <div class="flex-grow flex items-center">
         <div class="w-[50px] flex items-center justify-center select-none" :style="{ height: height }" id="top">
-          <span id="fixed"></span>
+          <!-- <span id="fixed"></span> -->
         </div>
         <span :style="{ fontSize: fontSize }" class="whitespace-nowrap text-ellipsis font-sans text-xs m-auto">
           {{ title }}
@@ -68,9 +68,9 @@ function winClosed() {
       </div>
       <div id="window-controls" class="grid top-0 right-0 h-full select-none w-[100px]" draggable="false">
         <!-- <div class="flex justify-center items-center h-full w-full select-none btn btn-ghost normal-case min-h-0"
-            @click="toSetting">
-            <img class="icon" :srcset="setting" draggable="false" />
-          </div> -->
+                    @click="toSetting">
+                    <img class="icon" :srcset="setting" draggable="false" />
+                  </div> -->
         <div
           class="flex justify-center items-center h-full w-full select-none hover:bg-gray-200 dark:hover:bg-gray-600 active:bg-zinc-500"
           @click="winMinSize">
