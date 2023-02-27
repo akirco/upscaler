@@ -6,15 +6,14 @@ import { channels } from "../../libs/channels";
 import { commands } from "../../libs/commands";
 import { run } from "../../libs/exec";
 import { execsPath, modelsPath } from "../../libs/paths";
-import { walker } from "../../libs/walker";
-import Queue from "../../libs/queue";
+import Queue from "../../libs/queue_worker";
+import { walkDir, WalkDirOptions } from "../../libs/walkDir";
 
 function windowAction(mainWindow: BrowserWindow) {
-  // 窗口事件
   ipcMain.on("windowMinSize", () => {
     mainWindow.minimize();
   });
-  ipcMain.on("toggleSize", (event) => {
+  ipcMain.on("toggleSize", (_event) => {
     if (mainWindow.isMaximized()) {
       mainWindow.restore();
     } else {
@@ -50,8 +49,8 @@ function toggleDark() {
 }
 
 function upscaleHandler(mainWindow: BrowserWindow) {
-  //* 选择图片
-  ipcMain.handle(channels.selectInput, async (event, message) => {
+  //* select single image
+  ipcMain.handle(channels.selectInput, async (_event, _message) => {
     const { canceled, filePaths } = await dialog.showOpenDialog({
       properties: ["openFile"],
       filters: [{ name: `图片`, extensions: ["jpg", "png"] }],
@@ -63,8 +62,8 @@ function upscaleHandler(mainWindow: BrowserWindow) {
       return filePaths[0];
     }
   });
-  //* start enhance
-  ipcMain.on(channels.startSingleTask, async (event, args) => {
+  //* startSingleTask
+  ipcMain.on(channels.startSingleTask, async (_event, args) => {
     const { upscaler, scale, model, input, output } = args;
     let params = null;
     if (upscaler === "realesrgan-ncnn-vulkan") {
@@ -151,15 +150,19 @@ function upscaleHandler(mainWindow: BrowserWindow) {
     mainWindow.webContents.send(commands.ok);
   });
 
-  // * 选择目录
   ipcMain.handle(channels.selectFolder, async () => {
+    const options: WalkDirOptions = {
+      extensions: [".png", ".jpg"],
+      maxDepth: 10,
+    };
     const { canceled, filePaths } = await dialog.showOpenDialog({
       properties: ["openDirectory"],
     });
     if (canceled) {
       return "cancelled";
     } else {
-      return await walker(filePaths[0], { wanted: [".jpg", ".png"] });
+      const files = await walkDir(filePaths[0], options);
+      return files;
     }
   });
 }

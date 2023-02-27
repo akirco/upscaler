@@ -1,6 +1,6 @@
 import { spawn } from "node:child_process";
-import { execsPath, modelsPath, outputPath } from "./paths";
-import { getOutputPath } from "./utils";
+import { execsPath, modelsPath, outputPath } from "../src/libs/paths";
+import { getOutputPath } from "../src/libs/utils";
 import { join } from "path";
 
 class execQueue {

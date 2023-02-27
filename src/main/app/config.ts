@@ -16,5 +16,6 @@ export const windowConfig: BrowserWindowConstructorOptions = {
     preload: path.join(__dirname, "..", "preload.js"),
     nodeIntegration: true,
     contextIsolation: false,
+    nodeIntegrationInWorker: true,
   },
 };

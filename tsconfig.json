@@ -22,7 +22,7 @@
     "src/**/*.tsx",
     "src/**/*.vue",
     "src/**/**/*.vue"
-  ],
+, "deprecated/queue.ts", "deprecated/walker.ts", "deprecated/walker.ts"  ],
   "references": [
     {
       "path": "./tsconfig.node.json"
