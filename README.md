@@ -1,6 +1,6 @@
 # super-resolution - upscaler
 
-> currently is single task processing mode.
+> tip: the sourecode is updated to use worker,but the latest release is not.
 
 ## install
 
@@ -18,9 +18,14 @@ scoop install upscaler
 2. choose upscaler & scale & model
 3. start program
 
-## upcoming
+## features
 
-- multi-task mode
+> more possibilities yourself to pull the refactor.
+
+- single-task mode
+- multi-task mode(Maximum three task at the same time)
+- toggle theme
+
 
 ## development
 
